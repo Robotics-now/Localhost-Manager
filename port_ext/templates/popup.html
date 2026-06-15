@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Localhost Manager Pro</title>
+  <style>
+    :root {
+      --chrome-blue: #1a73e8;
+      --chrome-blue-hover: #1557b0;
+      --chrome-blue-surface: #e8f0fe;
+      --chrome-text: #202124;
+      --chrome-text-secondary: #5f6368;
+      --chrome-border: #dadce0;
+      --chrome-surface: #f8f9fa;
+      --chrome-white: #ffffff;
+      --chrome-green: #34a853;
+      --chrome-red: #c5221f;
+      --chrome-gray-dot: #bdc1c6;
+      --delete-bg: #ea4335;
+      --delete-text: #ffffff;
+      --item-bg: var(--chrome-white);
+      --item-hover: var(--chrome-surface);
+    }
+    [data-theme="dark"] {
+      --chrome-blue: #8ab4f8;
+      --chrome-blue-hover: #aecbfa;
+      --chrome-blue-surface: #1e3a5f;
+      --chrome-text: #e8eaed;
+      --chrome-text-secondary: #9aa0a6;
+      --chrome-border: #3c4043;
+      --chrome-surface: #2d2e30;
+      --chrome-white: #202124;
+      --chrome-green: #81c995;
+      --chrome-red: #f28b82;
+      --chrome-gray-dot: #5f6368;
+      --delete-bg: #ea4335;
+      --delete-text: #ffffff;
+      --item-bg: #202124;
+      --item-hover: #2d2e30;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 360px;
+      font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+      font-size: 13px;
+      background: var(--chrome-white);
+      color: var(--chrome-text);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--chrome-border);
+      background: var(--chrome-surface);
+    }
+    .toolbar h2 {
+      font-size: 13px;
+      font-weight: 500;
+      flex: 1;
+      color: var(--chrome-text);
+    }
+    .icon-btn {
+      width: 28px; height: 28px;
+      border: none; background: transparent;
+      border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--chrome-text-secondary);
+      transition: background 0.15s;
+      padding: 0;
+    }
+    .icon-btn:hover { background: var(--chrome-border); }
+
+    /* ── Controls ── */
+    .controls {
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--chrome-border);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-group { display: flex; gap: 6px; align-items: center; }
+
+    button.chrome-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 12px;
+      height: 32px;
+      border: 1px solid var(--chrome-border);
+      border-radius: 4px;
+      background: var(--chrome-white);
+      color: var(--chrome-blue);
+      font-size: 13px;
+      font-family: inherit;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    button.chrome-btn:hover {
+      background: var(--chrome-blue-surface);
+      border-color: var(--chrome-blue);
+    }
+    button.chrome-btn.primary {
+      background: var(--chrome-blue);
+      color: var(--chrome-white);
+      border-color: var(--chrome-blue);
+    }
+    button.chrome-btn.primary:hover {
+      background: var(--chrome-blue-hover);
+      border-color: var(--chrome-blue-hover);
+    }
+
+    input[type="number"] {
+      flex: 1;
+      height: 32px;
+      padding: 0 10px;
+      border: 1px solid var(--chrome-border);
+      border-radius: 4px;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--chrome-text);
+      outline: none;
+      background: var(--chrome-white);
+      transition: border-color 0.15s;
+    }
+    input[type="number"]:focus {
+      border-color: var(--chrome-blue);
+      box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
+    }
+    input[type="number"]::placeholder { color: var(--chrome-text-secondary); }
+
+    /* ── Status bar ── */
+    #status-bar {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 5px 12px;
+      border-bottom: 1px solid var(--chrome-border);
+      background: var(--chrome-surface);
+    }
+    .status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.scanning { background: #fbbc04; animation: pulse 1s infinite; }
+    .status-dot.active   { background: var(--chrome-green); }
+    .status-dot.inactive { background: var(--chrome-gray-dot); }
+    .status-dot.error    { background: var(--chrome-red); animation: pulse 1s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+    #status { font-size: 11px; color: var(--chrome-text-secondary); }
+    #status.error { color: var(--chrome-red); font-weight: 500; }
+
+    /* ── Port list ── */
+    #port-list { display: flex; flex-direction: column; }
+
+    /* ── Swipe-to-delete ── */
+    .swipe-wrapper {
+      overflow: hidden;
+      border-bottom: 1px solid var(--chrome-border);
+    }
+    .swipe-wrapper:last-child { border-bottom: none; }
+
+    .swipe-track {
+      display: flex;
+      flex-direction: row;
+      will-change: transform;
+    }
+
+    .delete-btn {
+      flex-shrink: 0;
+      width: 72px;
+      border: none;
+      background: var(--delete-bg);
+      color: var(--delete-text);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      user-select: none;
+    }
+    .delete-btn svg { opacity: 0.9; }
+
+    /* List view */
+    .list-view .port-item {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 12px;
+      background: var(--item-bg);
+      transition: background 0.1s;
+      position: relative;
+      cursor: pointer;
+    }
+    .list-view .port-item:hover { background: var(--item-hover); }
+    .list-view .port-item img { width: 16px; height: 16px; flex-shrink: 0; border-radius: 2px; }
+    .list-view .port-item .details { flex: 1; min-width: 0; }
+    .list-view .port-item .title {
+      display: block;
+      font-size: 13px;
+      color: var(--chrome-text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .list-view .port-item .url { font-size: 11px; color: var(--chrome-blue); }
+    .list-view .port-item .icon-title { display: none; }
+
+    /* Grid / icon view */
+    .icon-view {
+      display: grid !important;
+      grid-template-columns: repeat(3, 1fr);
+      flex-direction: unset;
+    }
+    .icon-view .swipe-wrapper {
+      border-right: 1px solid var(--chrome-border);
+      border-bottom: 1px solid var(--chrome-border);
+      display: flex;
+      flex-direction: column;
+    }
+    .icon-view .swipe-wrapper:nth-child(3n) { border-right: none; }
+    .icon-view .swipe-track { flex-direction: column; }
+    .icon-view .delete-btn { width: 100%; height: 36px; flex-direction: row; gap: 6px; }
+    .icon-view .port-item {
+      flex: 1;
+      width: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 14px 8px 10px;
+      gap: 6px;
+      background: var(--item-bg);
+      min-height: 84px;
+      position: relative;
+    }
+    .icon-view .port-item img { width: 28px; height: 28px; border-radius: 6px; }
+    .icon-view .port-item .details { display: none; }
+    .icon-view .port-item .icon-title {
+      display: block;
+      font-size: 11px;
+      color: var(--chrome-text);
+      word-break: break-word;
+      line-height: 1.3;
+    }
+
+    /* Per-item status dot */
+    .status-indicator {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .icon-view .status-indicator { position: absolute; top: 6px; right: 6px; }
+
+    /* Network scan section */
+    #networkResults {
+      border-top: 1px solid var(--chrome-border);
+    }
+    .network-header {
+      padding: 6px 12px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--chrome-text-secondary);
+      background: var(--chrome-surface);
+      border-bottom: 1px solid var(--chrome-border);
+    }
+
+    /* Empty state */
+    #empty-state {
+      padding: 28px 12px;
+      text-align: center;
+      color: var(--chrome-text-secondary);
+      font-size: 12px;
+      display: none;
+    }
+    #empty-state .em-title {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--chrome-text);
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <h2>Localhost Manager Pro</h2>
+    <!-- Settings button (opens settings.html) -->
+    <button class="icon-btn" id="settingsBtn" title="Settings" aria-label="Settings">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <circle cx="8" cy="8" r="2"/>
+        <path d="M8 1.5v1M8 13.5v1M1.5 8h1M13.5 8h1M3.4 3.4l.7.7M11.9 11.9l.7.7M3.4 12.6l.7-.7M11.9 4.1l.7-.7"/>
+      </svg>
+    </button>
+    <!-- Rescan -->
+    <button class="icon-btn" id="rescanBtn" title="Rescan ports" aria-label="Rescan ports">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+        <path d="M13.5 8a5.5 5.5 0 1 1-1.1-3.3"/>
+        <polyline points="11,1 13.5,4.7 10,5.5"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="btn-group">
+      <button class="chrome-btn primary" id="rescanBtnAlt">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M13.5 8a5.5 5.5 0 1 1-1.1-3.3"/>
+          <polyline points="11,1 13.5,4.7 10,5.5"/>
+        </svg>
+        Rescan
+      </button>
+      <input type="file" id="htmlFile" accept=".html" style="display:none">
+      <button class="chrome-btn" id="hostBtn">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M10 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5l-3-4z"/>
+          <path d="M10 1v4h3"/>
+        </svg>
+        Host HTML
+      </button>
+    </div>
+    <div class="btn-group">
+      <input type="number" id="customPort" placeholder="Add port (e.g. 5501)" min="1" max="65535">
+      <button class="chrome-btn" id="addPortBtn">Add &amp; Scan</button>
+    </div>
+  </div>
+
+  <!-- Status bar -->
+  <div id="status-bar">
+    <span class="status-dot scanning" id="statusDot"></span>
+    <span id="status">Scanning services…</span>
+  </div>
+
+  <!-- Port list (localhost) -->
+  <div id="port-list" class="list-view">
+    <div id="empty-state">
+      <span class="em-title">No services found</span>
+      <span>Start a local server and rescan</span>
+    </div>
+  </div>
+
+  <!-- Network scan results (shown only when enabled) -->
+  <div id="networkResults" style="display:none">
+    <div class="network-header">Local network</div>
+    <div id="network-port-list" class="list-view"></div>
+  </div>
+
+  <script src="../scripts/popup.js"></script>
+</body>
+</html>

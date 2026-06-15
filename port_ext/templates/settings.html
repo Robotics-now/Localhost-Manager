@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Settings — Localhost Manager Pro</title>
+  <style>
+    :root {
+      --chrome-blue: #1a73e8;
+      --chrome-blue-hover: #1557b0;
+      --chrome-blue-surface: #e8f0fe;
+      --chrome-text: #202124;
+      --chrome-text-secondary: #5f6368;
+      --chrome-border: #dadce0;
+      --chrome-surface: #f8f9fa;
+      --chrome-white: #ffffff;
+      --chrome-green: #34a853;
+      --chrome-red: #c5221f;
+    }
+    [data-theme="dark"] {
+      --chrome-blue: #8ab4f8;
+      --chrome-blue-hover: #aecbfa;
+      --chrome-blue-surface: #1e3a5f;
+      --chrome-text: #e8eaed;
+      --chrome-text-secondary: #9aa0a6;
+      --chrome-border: #3c4043;
+      --chrome-surface: #2d2e30;
+      --chrome-white: #202124;
+      --chrome-green: #81c995;
+      --chrome-red: #f28b82;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      width: 360px;
+      font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+      font-size: 13px;
+      background: var(--chrome-white);
+      color: var(--chrome-text);
+    }
+
+    /* ── Toolbar ── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-bottom: 1px solid var(--chrome-border);
+      background: var(--chrome-surface);
+    }
+    .back-btn {
+      width: 28px; height: 28px;
+      border: none; background: transparent;
+      border-radius: 50%; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--chrome-text-secondary);
+      transition: background 0.15s;
+      flex-shrink: 0;
+      padding: 0;
+    }
+    .back-btn:hover { background: var(--chrome-border); }
+    .toolbar h2 { font-size: 13px; font-weight: 500; color: var(--chrome-text); }
+
+    /* ── Section ── */
+    .section {
+      padding: 16px 16px 4px;
+    }
+    .section-label {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: var(--chrome-text-secondary);
+      margin-bottom: 8px;
+    }
+    .section-card {
+      border: 1px solid var(--chrome-border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: var(--chrome-white);
+    }
+
+    /* ── Setting row ── */
+    .setting-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--chrome-border);
+    }
+    .setting-row:last-child { border-bottom: none; }
+
+    .setting-icon {
+      width: 32px; height: 32px;
+      border-radius: 8px;
+      background: var(--chrome-surface);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      color: var(--chrome-text-secondary);
+    }
+    .setting-info { flex: 1; min-width: 0; }
+    .setting-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--chrome-text);
+    }
+    .setting-desc {
+      font-size: 11px;
+      color: var(--chrome-text-secondary);
+      margin-top: 2px;
+      line-height: 1.4;
+    }
+
+    /* ── Toggle switch ── */
+    .toggle {
+      position: relative;
+      width: 36px; height: 20px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: var(--chrome-border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .toggle input:checked + .toggle-track { background: var(--chrome-blue); }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      left: 2px; top: 2px;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: white;
+      transition: transform 0.2s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+
+    /* ── Segmented control (theme) ── */
+    .segment-group {
+      display: flex;
+      border: 1px solid var(--chrome-border);
+      border-radius: 6px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .segment-group input[type="radio"] { display: none; }
+    .segment-group label {
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--chrome-text-secondary);
+      cursor: pointer;
+      border-right: 1px solid var(--chrome-border);
+      background: var(--chrome-white);
+      transition: background 0.15s, color 0.15s;
+      user-select: none;
+    }
+    .segment-group label:last-of-type { border-right: none; }
+    .segment-group input[type="radio"]:checked + label {
+      background: var(--chrome-blue);
+      color: white;
+    }
+
+    /* ── Network scan status ── */
+    #networkScanSection { display: none; }
+    #networkScanSection.visible { display: block; }
+
+    .network-status {
+      padding: 10px 14px;
+      font-size: 11px;
+      color: var(--chrome-text-secondary);
+      border-top: 1px solid var(--chrome-border);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .network-status .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--chrome-text-secondary);
+      flex-shrink: 0;
+    }
+    .network-status .dot.active { background: var(--chrome-green); }
+
+    /* ── Scan range input ── */
+    .scan-range {
+      padding: 10px 14px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      border-top: 1px solid var(--chrome-border);
+    }
+    .scan-range label { font-size: 12px; color: var(--chrome-text-secondary); white-space: nowrap; }
+    .scan-range input[type="text"] {
+      flex: 1;
+      height: 28px;
+      border: 1px solid var(--chrome-border);
+      border-radius: 4px;
+      padding: 0 8px;
+      font-size: 12px;
+      font-family: inherit;
+      color: var(--chrome-text);
+      background: var(--chrome-white);
+      outline: none;
+    }
+    .scan-range input:focus { border-color: var(--chrome-blue); }
+
+    /* ── About section ── */
+    .about-row {
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--chrome-border);
+    }
+    .about-row:last-child { border-bottom: none; }
+    .about-label { font-size: 12px; color: var(--chrome-text-secondary); }
+    .about-value { font-size: 12px; color: var(--chrome-text); font-weight: 500; }
+
+    .spacer { height: 12px; }
+    /* ── Scan interval slider ── */
+    .slider-row {
+      padding: 10px 14px 12px;
+      border-bottom: 1px solid var(--chrome-border);
+      transition: opacity 0.2s;
+    }
+    .slider-row.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .slider-label {
+      font-size: 12px;
+      color: var(--chrome-text-secondary);
+      font-weight: 500;
+    }
+    .slider-value {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--chrome-blue);
+      min-width: 40px;
+      text-align: right;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--chrome-border);
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--chrome-blue);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+    input[type="range"]:disabled {
+      cursor: not-allowed;
+    }
+    input[type="range"]:disabled::-webkit-slider-thumb {
+      background: var(--chrome-gray-dot, #bdc1c6);
+    }
+    .slider-ticks {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 6px;
+      font-size: 10px;
+      color: var(--chrome-text-secondary);
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="toolbar">
+    <button class="back-btn" id="backBtn" title="Back" aria-label="Back">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M10 3L5 8l5 5"/>
+      </svg>
+    </button>
+    <h2>Settings</h2>
+  </div>
+
+  <!-- Appearance -->
+  <div class="section">
+    <div class="section-label">Appearance</div>
+    <div class="section-card">
+
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="8" r="3"/>
+            <path d="M8 1v1.5M8 13.5V15M1 8h1.5M13.5 8H15M3.1 3.1l1.1 1.1M11.8 11.8l1.1 1.1M3.1 12.9l1.1-1.1M11.8 4.2l1.1-1.1"/>
+          </svg>
+        </div>
+        <div class="setting-info">
+          <div class="setting-title">Theme</div>
+          <div class="setting-desc">Choose light, dark, or follow your system</div>
+        </div>
+        <div class="segment-group">
+          <input type="radio" name="theme" id="themeLight" value="light">
+          <label for="themeLight">Light</label>
+          <input type="radio" name="theme" id="themeDark" value="dark">
+          <label for="themeDark">Dark</label>
+          <input type="radio" name="theme" id="themeAuto" value="auto" checked>
+          <label for="themeAuto">Auto</label>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="1" y="1" width="6" height="6" rx="1"/>
+            <rect x="9" y="1" width="6" height="6" rx="1"/>
+            <rect x="1" y="9" width="6" height="6" rx="1"/>
+            <rect x="9" y="9" width="6" height="6" rx="1"/>
+          </svg>
+        </div>
+        <div class="setting-info">
+          <div class="setting-title">Grid view</div>
+          <div class="setting-desc">Show ports as icons instead of a list</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="gridViewToggle">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- Scanning -->
+  <div class="section">
+    <div class="section-label">Scanning</div>
+    <div class="section-card">
+
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <circle cx="8" cy="8" r="2"/>
+            <circle cx="8" cy="8" r="5" stroke-dasharray="2 2"/>
+            <path d="M8 1v2M8 13v2M1 8h2M13 8h2"/>
+          </svg>
+        </div>
+        <div class="setting-info">
+          <div class="setting-title">Auto scan</div>
+          <div class="setting-desc">Automatically discover all active ports on localhost. Inactive ports are removed from the list.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="autoScanToggle">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <!-- Scan interval slider — disabled until auto scan is on -->
+      <div class="slider-row" id="scanIntervalRow">
+        <div class="slider-header">
+          <span class="slider-label">Scan interval</span>
+          <span class="slider-value" id="scanIntervalLabel">2 hr</span>
+        </div>
+        <input
+          type="range"
+          id="scanIntervalSlider"
+          min="0" max="23" step="1" value="2"
+          disabled
+        >
+        <div class="slider-ticks">
+          <span>30 min</span>
+          <span>6 hr</span>
+          <span>12 hr</span>
+          <span>24 hr</span>
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="1" y="3" width="14" height="10" rx="1.5"/>
+            <path d="M4 7h8M4 10h5"/>
+          </svg>
+        </div>
+        <div class="setting-info">
+          <div class="setting-title">Local network scan</div>
+          <div class="setting-desc">Also scan devices on your local network (192.168.x.x). Slower — runs after localhost scan.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="networkScanToggle">
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <div id="networkScanSection">
+        <div class="scan-range">
+          <label for="networkRange">IP range</label>
+          <input type="text" id="networkRange" placeholder="192.168.1.1–254" value="192.168.1">
+        </div>
+        <div class="network-status">
+          <span class="dot" id="networkDot"></span>
+          <span id="networkStatusText">Not scanned yet</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- About -->
+  <div class="section">
+    <div class="section-label">About</div>
+    <div class="section-card">
+      <div class="about-row">
+        <span class="about-label">Version</span>
+        <span class="about-value">1.7</span>
+      </div>
+      <div class="about-row">
+        <span class="about-label">Control server</span>
+        <span class="about-value" id="serverStatusLabel">Checking…</span>
+      </div>
+      <div class="about-row">
+        <span class="about-label">Default ports monitored</span>
+        <span class="about-value">7</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+
+  <script src="../scripts/settings.js"></script>
+</body>
+</html>

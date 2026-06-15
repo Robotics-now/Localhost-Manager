@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Localhost Manager Pro",
+  "version": "1.7",
+  "description": "Monitor active localhost ports, host HTML files, and scan your local network.",
+  "permissions": ["storage", "tabs", "windows"],
+  "host_permissions": [
+    "http://localhost/*",
+    "http://127.0.0.1/*",
+    "http://192.168.0.0/16"
+  ],
+  "action": {
+    "default_popup": "templates/popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "web_accessible_resources": [
+    {
+      "resources": ["templates/settings.html"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
