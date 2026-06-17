@@ -235,7 +235,8 @@ Access-Control-Allow-Headers: Content-Type
 
 ---
 
-## 🔴 Status Indicators
+## <img width="18" height="18" alt="image" src="https://github.com/user-attachments/assets/333cc08d-02a4-4150-900e-ffe8fd1b5008" />
+ Status Indicators
 
 | Dot | Meaning |
 |:---:|---|
@@ -247,18 +248,18 @@ Access-Control-Allow-Headers: Content-Type
 
 ---
 
-## 🌐 Browser Compatibility
+## <img width="18" height="18" alt="image" src="https://github.com/user-attachments/assets/ef1a8a01-c16b-4cb5-b6ce-c35823e75bc1" /> Browser Compatibility
 
 Works on any Chromium-based browser with Manifest V3 support:
 
-- Google Chrome
-- Microsoft Edge
-- Brave
-- Opera
+- <img width="13" height="13" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/chrome/chrome-original.svg" />  Google Chrome
+- <img width="13" height="13" alt="image" src="https://github.com/user-attachments/assets/045b3211-af74-4106-971e-b67f1c8f2ea1" /> Microsoft Edge
+- <img width="13" height="13" src="https://cdn.jsdelivr.net/gh/devicons/devicon@latest/icons/opera/opera-original.svg" /> Opera
+- <img width="13" height="13" alt="image" src="https://github.com/user-attachments/assets/645e0744-259d-49e3-99ae-3a3c498801dd" /> Chromium
 
 ---
 
-## 📋 Quick Reference
+## <img width="18" height="18" alt="image" src="https://github.com/user-attachments/assets/3e2ff91a-048e-481e-95af-ac944b0a998e" /> Quick Reference
 
 | | |
 |---|---|
