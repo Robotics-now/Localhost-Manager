@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Localhost Manager Pro",
+  "name": "Localhost Manager",
   "version": "1.7",
   "description": "Monitor active localhost ports, host HTML files, and scan your local network.",
   "permissions": ["storage", "tabs", "windows"],

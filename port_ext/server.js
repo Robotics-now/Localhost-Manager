@@ -162,12 +162,12 @@ const controlServer = http.createServer(async (req, res) => {
 
 controlServer.listen(CONTROL_PORT, '127.0.0.1', () => {
     console.log('');
-    console.log('┌─────────────────────────────────────────┐');
+    console.log('┌──────────────────────────────────────────┐');
     console.log('│   Localhost Manager Pro — Control Server │');
     console.log(`│   Listening on http://127.0.0.1:${CONTROL_PORT}    │`);
     console.log('│   Keep this terminal open while using    │');
     console.log('│   the extension. Ctrl+C to quit.         │');
-    console.log('└─────────────────────────────────────────┘');
+    console.log('└──────────────────────────────────────────┘');
     console.log('');
 });
 
