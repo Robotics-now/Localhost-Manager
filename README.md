@@ -273,11 +273,16 @@ Works on any Chromium-based browser with Manifest V3 support:
 
 ---
 
+
 <div align="center">
+
 
 [![Star on GitHub](https://img.shields.io/github/stars/Robotics-now/Localhost-Manager?style=social)](https://github.com/Robotics-now/Localhost-Manager)
 
 **Built for developers who run too many servers.**
+</br>
+</br>
+---- <a href="https://github.com/Robotics-now/Localhost-Manager/releases/tag/V1"> Releases </a> ----
 
 </div>
 
