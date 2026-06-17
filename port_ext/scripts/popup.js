@@ -518,19 +518,33 @@ async function hostFile(htmlContent) {
 }
 
 async function stopHosting(port) {
-    setStatus('scanning', `Stopping port ${port}…`);
-    try {
-        await stopHosted(port);
-    } catch {
-        setError('Server offline — run: node server.js');
-        return;
-    }
+    const wrapper = portListContainer.querySelector(`[data-port="${port}"]`);
+
+    // Instantly update state so it won't reappear on rescan
     hostedPortSet.delete(port);
     knownPorts = knownPorts.filter(p => p !== port);
     chrome.storage.local.set({ knownPorts, hostedPorts: [...hostedPortSet] });
-    portListContainer.querySelector(`[data-port="${port}"]`)?.remove();
     activePortSet.delete(port);
+
+    // Animate the row out in 0.5s — user sees it gone immediately
+    if (wrapper) {
+        wrapper.style.transition = 'opacity 0.3s ease, max-height 0.4s ease, padding 0.4s ease';
+        wrapper.style.overflow = 'hidden';
+        wrapper.style.maxHeight = wrapper.offsetHeight + 'px';
+        // Trigger animation on next frame
+        requestAnimationFrame(() => {
+            wrapper.style.opacity = '0';
+            wrapper.style.maxHeight = '0';
+        });
+        setTimeout(() => wrapper.remove(), 450);
+    }
+
     updateStatus('done', activePortSet.size, knownPorts.length);
+
+    // Actually stop the server in the background — takes ~5s, user doesn't wait
+    stopHosted(port).catch(() => {
+        // Server already gone or unreachable — nothing to do
+    });
 }
 
 // --- EVENT LISTENERS ---
