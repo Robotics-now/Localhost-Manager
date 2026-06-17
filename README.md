@@ -8,7 +8,7 @@
 
 [![Version](https://img.shields.io/badge/Version-1.7-4fc3f7?style=flat-square)](/)
 [![Manifest](https://img.shields.io/badge/Manifest-V3-22c55e?style=flat-square)](/)
-[![License](https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square)](/)
+[![License](https://img.shields.io/badge/License-GPL3.0-f59e0b?style=flat-square)](/)
 [![Node](https://img.shields.io/badge/Requires-Node.js-3c873a?style=flat-square)](/)
 
 <br/>
@@ -44,7 +44,7 @@
 
 ---
 
-## 📦 Install
+## <img width="18" height="18" alt="image" src="https://github.com/user-attachments/assets/877b0398-e64c-4390-b3f5-f5d01b43ae17" /> Install
 
 <details>
 <summary><b>Step 1 — Download the extension</b></summary>
@@ -94,7 +94,7 @@ Leave this terminal open while using the extension. You should see:
 
 ---
 
-## 🚀 Setup
+## <img width="18" height="18" alt="image" src="https://github.com/user-attachments/assets/81ac9f58-0358-451e-a4f0-2dd53ecc6250" /> Setup
 
 Once installed, click the extension icon. Active services appear immediately with a green dot. Click any row to open it in a new tab.
 
@@ -119,7 +119,7 @@ Open **Settings** (gear icon in the popup) and toggle **Auto scan** on. The exte
 
 ---
 
-## 📁 File Structure
+## <img width="18" height="18" alt="image" src="https://github.com/user-attachments/assets/b997b662-dddd-4d9c-9495-4de8630f6308" /> File Structure
 
 ```
 Localhost-Manager/
@@ -136,7 +136,7 @@ Localhost-Manager/
 
 ---
 
-## 🔌 API Contract
+## <img width="18" height="18" alt="image" src="https://github.com/user-attachments/assets/36fed2c1-acd5-4d2b-af15-90acd5ce4636" /> API Contract
 
 The extension communicates with `server.js` over plain HTTP on `http://127.0.0.1:8765`. You can replace `server.js` with your own implementation in any language — as long as it speaks this contract.
 
@@ -223,7 +223,7 @@ Access-Control-Allow-Headers: Content-Type
 
 ---
 
-## ⚙️ Settings Reference
+## <img width="18" height="18" alt="image" src="https://github.com/user-attachments/assets/7b2e33e7-68ad-4b64-a8e0-6c9ee917fc33" /> Settings Reference
 
 | Setting | Description |
 |---|---|
@@ -284,5 +284,5 @@ Works on any Chromium-based browser with Manifest V3 support:
 
 ## License
 
-> **MIT License**  
+> **GPL 3.0 License**  
 > Copyright © 2026 Robotics-now
