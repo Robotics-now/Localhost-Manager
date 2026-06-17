@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="https://img.shields.io/badge/Localhost%20Manager-Pro-4fc3f7?style=for-the-badge&labelColor=0d1117" alt="Localhost Manager Pro" height="36"/>
+<img src="https://img.shields.io/badge/Localhost%20Manager-Extention-4fc3f7?style=for-the-badge&labelColor=0d1117" alt="Localhost Manager Pro" height="36"/>
 
 <br/><br/>
 
@@ -81,7 +81,7 @@ Leave this terminal open while using the extension. You should see:
 
 ```
 ┌─────────────────────────────────────────┐
-│   Localhost Manager Pro — Control Server │
+│  Localhost Manager Pro — Control Server │
 │   Listening on http://127.0.0.1:8765    │
 │   Keep this terminal open while using   │
 │   the extension. Ctrl+C to quit.        │
