@@ -239,8 +239,7 @@ Access-Control-Allow-Headers: Content-Type
 
 ---
 
-## <img width="18" height="18" alt="image" src="https://github.com/user-attachments/assets/333cc08d-02a4-4150-900e-ffe8fd1b5008" />
- Status Indicators
+## <img width="18" height="18" alt="image" src="https://github.com/user-attachments/assets/333cc08d-02a4-4150-900e-ffe8fd1b5008" /> Status Indicators
 
 | Dot | Meaning |
 |:---:|---|
