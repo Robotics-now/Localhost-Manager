@@ -14,6 +14,9 @@
 <br/>
 
 **Monitor active localhost ports · Host HTML files on real servers · Scan your local network**
+<br>
+<br>
+<ins>**We sugest that you visit the<a href="https://localhost-manager.roboticsnow.dpdns.org/#settings"> website**<ins>
 
 <br/>
 
