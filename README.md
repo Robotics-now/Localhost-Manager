@@ -61,7 +61,8 @@ Go to [Releases](https://github.com/Robotics-now/Localhost-Manager/releases/) an
 1. Open `chrome://extensions`
 2. Enable **Developer Mode** (top right toggle)
 3. Click **Load unpacked**
-4. Select the extracted extension folder
+4. Select the `port_ext` extension folder
+   
 
 The extension icon will appear in your toolbar.
 
@@ -91,6 +92,9 @@ Leave this terminal open while using the extension. You should see:
 > **Requires Node.js** — no `npm install` needed, uses only built-in modules.
 
 </details>
+
+> [!IMPORTANT]
+> When installing remember to load the `port_ext` file into your browser instead of the entire source code as it will fail because it is not the extension itself. 
 
 ---
 
