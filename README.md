@@ -6,10 +6,10 @@
 
 <br/><br/>
 
-[![Version](https://img.shields.io/badge/Version-1-4fc3f7?style=flat-square)](/)
-[![Manifest](https://img.shields.io/badge/Manifest-V3-22c55e?style=flat-square)](/)
-[![License](https://img.shields.io/badge/License-GPL3.0-f59e0b?style=flat-square)](/)
-[![Node](https://img.shields.io/badge/Requires-Node.js-3c873a?style=flat-square)](/)
+[![Version](https://img.shields.io/badge/Version-1.1-4fc3f7?style=flat-square)](https://github.com/Robotics-now/Localhost-Manager/releases)
+[![Manifest](https://img.shields.io/badge/Manifest-V3-22c55e?style=flat-square)](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)
+[![License](https://img.shields.io/badge/License-GPL3.0-f59e0b?style=flat-square)](https://github.com/Robotics-now/Localhost-Manager?tab=GPL-3.0-1-ov-file)
+[![Node](https://img.shields.io/badge/Requires-Node.js-3c873a?style=flat-square)](https://nodejs.org/en)
 
 <br/>
 
