@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Localhost Manager",
-  "version": "1.7",
+  "version": "1.2",
   "description": "Monitor active localhost ports, host HTML files, and scan your local network.",
   "permissions": ["storage", "tabs", "windows"],
   "host_permissions": [
@@ -22,6 +22,15 @@
       "32":  "icons/icon128.png",
       "48":  "icons/icon128.png",
       "128": "icons/icon_ext.png"
+    }
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "Command+Shift+L"
+      },
+      "description": "Open Localhost Manager"
     }
   },
   "background": {
