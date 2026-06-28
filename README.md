@@ -2,7 +2,7 @@
 
 <div align="center">
 
-<img src="https://img.shields.io/badge/Localhost%20Manager-Extention-4fc3f7?style=for-the-badge&labelColor=0d1117" alt="Localhost Manager Pro" height="36"/>
+<img src="https://img.shields.io/badge/Localhost%20Manager-Extension-4fc3f7?style=for-the-badge&labelColor=0d1117" alt="Localhost Manager Pro" height="36"/>
 
 <br/><br/>
 
@@ -16,8 +16,7 @@
 **Monitor active localhost ports · Host HTML files on real servers · Scan your local network · Completely local and private**
 <br>
 <br>
-<ins>**We sugest that you visit the<a href="https://localhost-manager.roboticsnow.dpdns.org/#settings"> website**<ins>
-
+👉 **<a href="https://localhost-manager.roboticsnow.dpdns.org/#settings"> Visit our interactive Landing Page & Documentation Website**
 <br/>
 
 | |
@@ -44,6 +43,7 @@
 | ⬡ **Live status dots** | Green = active · Gray = offline · Blue = hosted · Red = error |
 | ↔️ **Swipe to remove** | Drag any port row left to reveal a delete button |
 | 🕒 **Smart caching** | Configurable scan interval (30 min → 24 hr) — popup opens instantly from cache |
+| **Acsent color picker** | Adds much more personalization to Your extension |
 
 ---
 
@@ -64,7 +64,7 @@ Go to [Releases](https://github.com/Robotics-now/Localhost-Manager/releases/) an
 1. Open `chrome://extensions`
 2. Enable **Developer Mode** (top right toggle)
 3. Click **Load unpacked**
-4. Select the `port_ext` extension folder
+4. Select the `port_ext` extension folder inside the extracted files
    
 
 The extension icon will appear in your toolbar.
@@ -276,7 +276,7 @@ Works on any Chromium-based browser with Manifest V3 support:
 | **Network scan range** | `192.168.x.1 – .30` (configurable) |
 | **Manifest version** | MV3 |
 | **Node.js required** | For Host HTML feature only |
-| **Security** | Complytely stays on your machine, runs localy |
+| **Security** | 100% private. Runs entirely locally on your machine. |
 
 ---
 
