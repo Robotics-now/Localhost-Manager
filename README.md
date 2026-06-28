@@ -13,7 +13,7 @@
 
 <br/>
 
-**Monitor active localhost ports · Host HTML files on real servers · Scan your local network**
+**Monitor active localhost ports · Host HTML files on real servers · Scan your local network · Completely local and private**
 <br>
 <br>
 <ins>**We sugest that you visit the<a href="https://localhost-manager.roboticsnow.dpdns.org/#settings"> website**<ins>
@@ -276,6 +276,7 @@ Works on any Chromium-based browser with Manifest V3 support:
 | **Network scan range** | `192.168.x.1 – .30` (configurable) |
 | **Manifest version** | MV3 |
 | **Node.js required** | For Host HTML feature only |
+| **Security** | Complytely stays on your machine, runs localy |
 
 ---
 
