@@ -20,6 +20,9 @@
       --delete-text: #ffffff;
       --item-bg: var(--chrome-white);
       --item-hover: var(--chrome-surface);
+      --accent: #1a73e8;
+      --accent-hover: #1557b0;
+      --accent-surface: #e8f0fe;
     }
     [data-theme="dark"] {
       --chrome-blue: #8ab4f8;
@@ -37,6 +40,9 @@
       --delete-text: #ffffff;
       --item-bg: #202124;
       --item-hover: #2d2e30;
+      --accent: #8ab4f8;
+      --accent-hover: #aecbfa;
+      --accent-surface: #1e3a5f;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -122,7 +128,7 @@
       border: 1px solid var(--chrome-border);
       border-radius: 4px;
       background: var(--chrome-white);
-      color: var(--chrome-blue);
+      color: var(--accent);
       font-size: 13px;
       font-family: inherit;
       font-weight: 500;
@@ -131,17 +137,17 @@
       transition: background 0.15s, border-color 0.15s;
     }
     button.chrome-btn:hover {
-      background: var(--chrome-blue-surface);
-      border-color: var(--chrome-blue);
+      background: var(--accent-surface);
+      border-color: var(--accent);
     }
     button.chrome-btn.primary {
-      background: var(--chrome-blue);
+      background: var(--accent);
       color: var(--chrome-white);
-      border-color: var(--chrome-blue);
+      border-color: var(--accent);
     }
     button.chrome-btn.primary:hover {
-      background: var(--chrome-blue-hover);
-      border-color: var(--chrome-blue-hover);
+      background: var(--accent-hover);
+      border-color: var(--accent-hover);
     }
 
     input[type="number"] {
@@ -158,7 +164,7 @@
       transition: border-color 0.15s;
     }
     input[type="number"]:focus {
-      border-color: var(--chrome-blue);
+      border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
     }
     input[type="number"]::placeholder { color: var(--chrome-text-secondary); }
@@ -245,8 +251,46 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
-    .list-view .port-item .url { font-size: 11px; color: var(--chrome-blue); }
+    .list-view .port-item .url { font-size: 11px; color: var(--accent); }
     .list-view .port-item .icon-title { display: none; }
+
+    /* Latency — light gray, small, under the URL. List view only. */
+    .list-view .port-item .latency {
+      display: block;
+      font-size: 10px;
+      color: var(--chrome-text-secondary);
+      opacity: 0.75;
+      margin-top: 1px;
+    }
+
+    /* Pin button — list view only. Same gray as latency text. */
+    .pin-btn {
+      display: none;
+      width: 24px; height: 24px;
+      border: none;
+      background: transparent;
+      border-radius: 50%;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      color: var(--chrome-text-secondary);
+      flex-shrink: 0;
+      transition: color 0.15s, background 0.15s, opacity 0.15s;
+      opacity: 0;
+    }
+    .list-view .pin-btn { display: flex; }
+    .list-view .port-item:hover .pin-btn { opacity: 1; }
+    .pin-btn:hover { background: var(--chrome-border); }
+    .pin-btn.pinned {
+      color: var(--chrome-text-secondary);
+      opacity: 1;
+    }
+    .pin-btn.pinned:hover { background: var(--chrome-border); }
+
+    /* Pinned row gets a subtle highlight in list view */
+    .list-view .port-item.pinned {
+      background: var(--item-hover);
+    }
 
     /* Grid / icon view */
     .icon-view {

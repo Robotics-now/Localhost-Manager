@@ -7,6 +7,7 @@ let currentTheme = 'auto';
 let networkScanEnabled = false;
 let networkRange = '192.168.1';
 let autoScanEnabled = false;
+let pinnedPorts = new Set();
 
 const CONTROL_SERVER = 'http://127.0.0.1:8765';
 const NETWORK_PORTS_TO_CHECK = [80, 443, 3000, 5000, 8000, 8080, 8443];
@@ -28,13 +29,29 @@ function applyTheme(theme) {
     } else {
         document.documentElement.setAttribute('data-theme', theme);
     }
+    reapplyStoredAccent();
+}
+
+// --- ACCENT COLOR ---
+// Mirrors the swatch picker in settings.js — reads the saved color object
+// and applies the light or dark variant depending on the current theme.
+function reapplyStoredAccent() {
+    chrome.storage.local.get(['accentColor'], (result) => {
+        if (!result.accentColor) return;
+        const a = result.accentColor;
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const root = document.documentElement.style;
+        root.setProperty('--accent', isDark ? a.dark : a.color);
+        root.setProperty('--accent-hover', isDark ? a.darkHover : a.hover);
+        root.setProperty('--accent-surface', isDark ? a.darkSurface : a.surface);
+    });
 }
 
 window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
     if (currentTheme === 'auto') applyTheme('auto');
 });
 
-// Re-apply theme whenever popup gets focus (user may have changed it in settings)
+// Re-apply theme/accent whenever popup gets focus (user may have changed it in settings)
 window.addEventListener('focus', () => {
     chrome.storage.local.get(['theme', 'viewMode', 'networkScan', 'networkRange'], (result) => {
         applyTheme(result.theme || 'auto');
@@ -51,7 +68,7 @@ window.addEventListener('focus', () => {
 });
 
 // --- INITIALIZATION ---
-chrome.storage.local.get(['knownPorts', 'viewMode', 'hostedPorts', 'theme', 'networkScan', 'networkRange', 'autoScan', 'autoScanInterval'], (result) => {
+chrome.storage.local.get(['knownPorts', 'viewMode', 'hostedPorts', 'theme', 'networkScan', 'networkRange', 'autoScan', 'autoScanInterval', 'pinnedPorts'], (result) => {
     if (result.knownPorts) knownPorts = result.knownPorts;
     if (result.viewMode) {
         isGridView = result.viewMode === 'grid';
@@ -59,6 +76,7 @@ chrome.storage.local.get(['knownPorts', 'viewMode', 'hostedPorts', 'theme', 'net
         networkPortList.className = isGridView ? 'icon-view' : 'list-view';
     }
     if (result.hostedPorts) result.hostedPorts.forEach(p => hostedPortSet.add(p));
+    if (result.pinnedPorts) result.pinnedPorts.forEach(p => pinnedPorts.add(p));
     networkScanEnabled = !!result.networkScan;
     networkRange = result.networkRange || '192.168.1';
     autoScanEnabled = !!result.autoScan;
@@ -128,11 +146,13 @@ async function getFaviconUrl(port) {
 
 async function checkPort(port) {
     const url = `http://localhost:${port}`;
+    const startTime = performance.now();
     try {
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 1200);
         await fetch(url, { mode: 'no-cors', signal: controller.signal });
         clearTimeout(timeout);
+        const latency = Math.round(performance.now() - startTime);
 
         let title = `Port ${port}`;
         try {
@@ -145,7 +165,7 @@ async function checkPort(port) {
         } catch { /* keep default */ }
 
         const favicon = await getFaviconUrl(port);
-        return { port, url, title, favicon };
+        return { port, url, title, favicon, latency };
     } catch { return null; }
 }
 
@@ -171,11 +191,24 @@ async function scanPorts(force = false) {
         });
 
         updateStatus('done', activePortSet.size, uniquePorts.length);
-        displayList.forEach(data => renderPort(data, portListContainer));
+        sortByPin(displayList).forEach(data => renderPort(data, portListContainer));
     }
 
     if (networkScanEnabled) scanNetwork();
     else networkResults.style.display = 'none';
+
+    reportToBackground();
+}
+
+// Tells background.js the current active count and server health right after
+// a scan, so the toolbar badge updates immediately instead of waiting for the
+// background's own ~15s poll cycle. New-port detection still happens in the
+// background since it needs to run even when the popup is closed.
+function reportToBackground() {
+    chrome.runtime.sendMessage({ action: 'reportActiveCount', count: activePortSet.size });
+    controlServerReady().then(online => {
+        chrome.runtime.sendMessage({ action: 'reportServerStatus', online });
+    });
 }
 
 // Auto scan: probe all ports in BATCH_SIZE chunks.
@@ -206,12 +239,12 @@ async function runAutoScan(force = false) {
         updateStatus('done', activePortSet.size, knownPorts.length);
         setStatus('active', `${activePortSet.size} services · next scan in ${minsLeft}m`);
 
-        cached.forEach(data => renderPort({ ...data, active: true }, portListContainer));
-        hostedPortSet.forEach(port => {
-            if (!activePortSet.has(port)) {
-                renderPort({ port, url: `http://localhost:${port}`, title: `Port ${port}`, favicon: null, active: false }, portListContainer);
-            }
-        });
+        const offlineHosted = [...hostedPortSet]
+            .filter(port => !activePortSet.has(port))
+            .map(port => ({ port, url: `http://localhost:${port}`, title: `Port ${port}`, favicon: null, active: false }));
+
+        const cachedActive = cached.map(r => ({ ...r, active: true }));
+        sortByPin([...cachedActive, ...offlineHosted]).forEach(data => renderPort(data, portListContainer));
         return;
     }
 
@@ -248,12 +281,12 @@ async function runAutoScan(force = false) {
 
     updateStatus('done', activePortSet.size, knownPorts.length);
 
-    discovered.forEach(data => renderPort({ ...data, active: true }, portListContainer));
-    hostedPortSet.forEach(port => {
-        if (!activePortSet.has(port)) {
-            renderPort({ port, url: `http://localhost:${port}`, title: `Port ${port}`, favicon: null, active: false }, portListContainer);
-        }
-    });
+    const offlineHosted = [...hostedPortSet]
+        .filter(port => !activePortSet.has(port))
+        .map(port => ({ port, url: `http://localhost:${port}`, title: `Port ${port}`, favicon: null, active: false }));
+
+    const discoveredActive = discovered.map(r => ({ ...r, active: true }));
+    sortByPin([...discoveredActive, ...offlineHosted]).forEach(data => renderPort(data, portListContainer));
 }
 
 // --- NETWORK SCANNING ---
@@ -302,6 +335,16 @@ async function scanNetwork() {
 }
 
 // --- RENDERING ---
+
+// Pinned ports float to the top, keeping relative order within each group
+function sortByPin(items) {
+    return [...items].sort((a, b) => {
+        const aPinned = pinnedPorts.has(a.port) ? 1 : 0;
+        const bPinned = pinnedPorts.has(b.port) ? 1 : 0;
+        return bPinned - aPinned;
+    });
+}
+
 const fallbackSvg = `data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235f6368' stroke-width='1.5'><rect x='2' y='3' width='20' height='14' rx='2'/><path d='M8 21h8M12 17v4'/></svg>`;
 
 // deleteSvg — trash icon for delete button
@@ -311,7 +354,8 @@ const deleteSvgMarkup = `<svg width="14" height="14" viewBox="0 0 16 16" fill="n
 
 function renderPort(data, container, isNetwork = false) {
     const isHosted = !isNetwork && hostedPortSet.has(data.port);
-    const dotColor = isHosted ? 'var(--chrome-blue)' : data.active ? 'var(--chrome-green)' : 'var(--chrome-gray-dot)';
+    const isPinned = !isNetwork && pinnedPorts.has(data.port);
+    const dotColor = isHosted ? 'var(--accent)' : data.active ? 'var(--chrome-green)' : 'var(--chrome-gray-dot)';
     const dotTitle = isHosted ? 'Hosted by extension' : data.active ? 'Active' : 'Offline';
 
     const wrapper = document.createElement('div');
@@ -323,6 +367,7 @@ function renderPort(data, container, isNetwork = false) {
 
     const item = document.createElement('div');
     item.className = 'port-item';
+    if (isPinned) item.classList.add('pinned');
 
     const img = document.createElement('img');
     img.alt = '';
@@ -339,15 +384,25 @@ function renderPort(data, container, isNetwork = false) {
 
     const titleSpan = document.createElement('span');
     titleSpan.className = 'title';
-    if (isHosted) titleSpan.style.color = 'var(--chrome-blue)';
+    if (isHosted) titleSpan.style.color = 'var(--accent)';
     titleSpan.textContent = data.title;
 
     const urlSpan = document.createElement('span');
     urlSpan.className = 'url';
     urlSpan.textContent = isNetwork ? data.url : `localhost:${data.port}`;
 
-    details.appendChild(titleSpan);
-    details.appendChild(urlSpan);
+    // Latency — light gray small text under the URL, list view only, only when known
+    if (typeof data.latency === 'number' && data.active) {
+        const latencySpan = document.createElement('span');
+        latencySpan.className = 'latency';
+        latencySpan.textContent = `${data.latency} ms`;
+        details.appendChild(titleSpan);
+        details.appendChild(urlSpan);
+        details.appendChild(latencySpan);
+    } else {
+        details.appendChild(titleSpan);
+        details.appendChild(urlSpan);
+    }
 
     const iconTitle = document.createElement('span');
     iconTitle.className = 'icon-title';
@@ -357,6 +412,24 @@ function renderPort(data, container, isNetwork = false) {
     item.appendChild(img);
     item.appendChild(details);
     item.appendChild(iconTitle);
+
+    // Pin button — list view only, not for network scan rows
+    if (!isNetwork) {
+        const pinBtn = document.createElement('button');
+        pinBtn.className = 'pin-btn';
+        if (isPinned) pinBtn.classList.add('pinned');
+        pinBtn.title = isPinned ? 'Unpin' : 'Pin to top';
+        pinBtn.setAttribute('aria-label', isPinned ? 'Unpin port' : 'Pin port to top');
+        // Simple thumbtack/pin glyph — outline when unpinned, filled when pinned
+        pinBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 16 16" fill="${isPinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="1.3">
+            <path d="M9.5 1.5h-3a.5.5 0 0 0-.5.5v3.1c0 .3-.1.5-.3.7L3.4 8.1a1 1 0 0 0-.4.8v.6c0 .3.2.5.5.5h4.1v3.5a.4.4 0 0 0 .8 0V10h4.1c.3 0 .5-.2.5-.5v-.6a1 1 0 0 0-.4-.8L10.3 5.8a.9.9 0 0 1-.3-.7V2a.5.5 0 0 0-.5-.5z" stroke-linejoin="round" stroke-linecap="round"/>
+        </svg>`;
+        pinBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            togglePin(data.port);
+        });
+        item.appendChild(pinBtn);
+    }
 
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'delete-btn';
@@ -393,6 +466,14 @@ function renderPort(data, container, isNetwork = false) {
     }
 
     attachSwipe(wrapper, track, item);
+}
+
+// Pin/unpin a port — re-renders the current scan results so the new order shows immediately
+function togglePin(port) {
+    if (pinnedPorts.has(port)) pinnedPorts.delete(port);
+    else pinnedPorts.add(port);
+    chrome.storage.local.set({ pinnedPorts: [...pinnedPorts] });
+    scanPorts(); // re-render with new pin order, uses cache if valid so this is instant
 }
 
 // --- SWIPE TO DELETE ---
@@ -483,7 +564,8 @@ function attachSwipe(wrapper, track, item) {
 // --- PORT MANAGEMENT ---
 function removePort(port) {
     knownPorts = knownPorts.filter(p => p !== port);
-    chrome.storage.local.set({ knownPorts });
+    pinnedPorts.delete(port);
+    chrome.storage.local.set({ knownPorts, pinnedPorts: [...pinnedPorts] });
     portListContainer.querySelector(`[data-port="${port}"]`)?.remove();
     activePortSet.delete(port);
     updateStatus('done', activePortSet.size, knownPorts.length);
@@ -523,7 +605,8 @@ async function stopHosting(port) {
     // Instantly update state so it won't reappear on rescan
     hostedPortSet.delete(port);
     knownPorts = knownPorts.filter(p => p !== port);
-    chrome.storage.local.set({ knownPorts, hostedPorts: [...hostedPortSet] });
+    pinnedPorts.delete(port);
+    chrome.storage.local.set({ knownPorts, hostedPorts: [...hostedPortSet], pinnedPorts: [...pinnedPorts] });
     activePortSet.delete(port);
 
     // Animate the row out in 0.5s — user sees it gone immediately

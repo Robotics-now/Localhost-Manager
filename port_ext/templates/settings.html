@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Settings — Localhost Manager Pro</title>
+  <title>Settings — Localhost Manager</title>
   <style>
     :root {
       --chrome-blue: #1a73e8;
@@ -15,6 +15,9 @@
       --chrome-white: #ffffff;
       --chrome-green: #34a853;
       --chrome-red: #c5221f;
+      --accent: #1a73e8;
+      --accent-hover: #1557b0;
+      --accent-surface: #e8f0fe;
     }
     [data-theme="dark"] {
       --chrome-blue: #8ab4f8;
@@ -27,6 +30,9 @@
       --chrome-white: #202124;
       --chrome-green: #81c995;
       --chrome-red: #f28b82;
+      --accent: #8ab4f8;
+      --accent-hover: #aecbfa;
+      --accent-surface: #1e3a5f;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -152,7 +158,7 @@
       cursor: pointer;
       transition: background 0.2s;
     }
-    .toggle input:checked + .toggle-track { background: var(--chrome-blue); }
+    .toggle input:checked + .toggle-track { background: var(--accent); }
     .toggle-track::after {
       content: '';
       position: absolute;
@@ -164,6 +170,44 @@
       box-shadow: 0 1px 3px rgba(0,0,0,0.2);
     }
     .toggle input:checked + .toggle-track::after { transform: translateX(16px); }
+
+    /* ── Accent color swatches ── */
+    .swatch-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .swatch {
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      position: relative;
+      transition: transform 0.12s;
+      flex-shrink: 0;
+    }
+    .swatch:hover { transform: scale(1.12); }
+    .swatch.selected::after {
+      content: '';
+      position: absolute;
+      inset: -3px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+    }
+    .swatch.selected::before {
+      content: '✓';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 11px;
+      font-weight: 700;
+      text-shadow: 0 1px 1px rgba(0,0,0,0.3);
+    }
 
     /* ── Segmented control (theme) ── */
     .segment-group {
@@ -187,7 +231,7 @@
     }
     .segment-group label:last-of-type { border-right: none; }
     .segment-group input[type="radio"]:checked + label {
-      background: var(--chrome-blue);
+      background: var(--accent);
       color: white;
     }
 
@@ -233,7 +277,29 @@
       background: var(--chrome-white);
       outline: none;
     }
-    .scan-range input:focus { border-color: var(--chrome-blue); }
+    .scan-range input:focus { border-color: var(--accent); }
+
+    /* ── Shortcut button ── */
+    .shortcut-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 6px 12px;
+      border: 1px solid var(--chrome-border);
+      border-radius: 6px;
+      background: var(--chrome-surface);
+      color: var(--chrome-text);
+      font-size: 12px;
+      font-weight: 600;
+      font-family: ui-monospace, monospace;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .shortcut-btn:hover {
+      border-color: var(--accent);
+      background: var(--accent-surface);
+    }
 
     /* ── About section ── */
     .about-row {
@@ -272,7 +338,7 @@
     .slider-value {
       font-size: 12px;
       font-weight: 600;
-      color: var(--chrome-blue);
+      color: var(--accent);
       min-width: 40px;
       text-align: right;
     }
@@ -292,7 +358,7 @@
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: var(--chrome-blue);
+      background: var(--accent);
       box-shadow: 0 1px 3px rgba(0,0,0,0.2);
       cursor: pointer;
       transition: transform 0.1s;
@@ -383,6 +449,30 @@
           <label for="themeDark">Dark</label>
           <input type="radio" name="theme" id="themeAuto" value="auto" checked>
           <label for="themeAuto">Auto</label>
+        </div>
+      </div>
+
+      <!-- Accent color — macOS-style swatch picker -->
+      <div class="setting-row" style="align-items: flex-start;">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="8" cy="8" r="6.5"/>
+            <path d="M8 1.5a6.5 6.5 0 0 1 0 13z" fill="currentColor" stroke="none"/>
+          </svg>
+        </div>
+        <div class="setting-info">
+          <div class="setting-title">Accent color</div>
+          <div class="setting-desc">Changes buttons, links, and highlights throughout the extension</div>
+          <div class="swatch-row" id="accentSwatches">
+            <button class="swatch" data-color="#1a73e8" data-hover="#1557b0" data-surface="#e8f0fe" data-dark="#8ab4f8" data-dark-hover="#aecbfa" data-dark-surface="#1e3a5f" style="background:#1a73e8" title="Blue" aria-label="Blue accent"></button>
+            <button class="swatch" data-color="#9333ea" data-hover="#7e22ce" data-surface="#f3e8ff" data-dark="#c084fc" data-dark-hover="#d8b4fe" data-dark-surface="#3b1d5c" style="background:#9333ea" title="Purple" aria-label="Purple accent"></button>
+            <button class="swatch" data-color="#e11d48" data-hover="#be123c" data-surface="#ffe4e6" data-dark="#fb7185" data-dark-hover="#fda4af" data-dark-surface="#4c1424" title="Pink" style="background:#e11d48" aria-label="Pink accent"></button>
+            <button class="swatch" data-color="#f97316" data-hover="#ea580c" data-surface="#ffedd5" data-dark="#fb923c" data-dark-hover="#fdba74" data-dark-surface="#4a2a0f" title="Orange" style="background:#f97316" aria-label="Orange accent"></button>
+            <button class="swatch" data-color="#eab308" data-hover="#ca8a04" data-surface="#fef9c3" data-dark="#fde047" data-dark-hover="#fef08a" data-dark-surface="#4a3d0a" title="Yellow" style="background:#eab308" aria-label="Yellow accent"></button>
+            <button class="swatch" data-color="#16a34a" data-hover="#15803d" data-surface="#dcfce7" data-dark="#4ade80" data-dark-hover="#86efac" data-dark-surface="#14361f" title="Green" style="background:#16a34a" aria-label="Green accent"></button>
+            <button class="swatch" data-color="#0d9488" data-hover="#0f766e" data-surface="#ccfbf1" data-dark="#2dd4bf" data-dark-hover="#5eead4" data-dark-surface="#0f3a36" title="Teal" style="background:#0d9488" aria-label="Teal accent"></button>
+            <button class="swatch" data-color="#475569" data-hover="#334155" data-surface="#e2e8f0" data-dark="#94a3b8" data-dark-hover="#cbd5e1" data-dark-surface="#2a323e" title="Graphite" style="background:#475569" aria-label="Graphite accent"></button>
+          </div>
         </div>
       </div>
 
@@ -478,6 +568,88 @@
         <div class="network-status">
           <span class="dot" id="networkDot"></span>
           <span id="networkStatusText">Not scanned yet</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- Shortcuts -->
+  <div class="section">
+    <div class="section-label">Shortcuts</div>
+    <div class="section-card">
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="1.5" y="4" width="13" height="8" rx="1.5"/>
+            <path d="M4 7h.01M6.5 7h.01M9 7h.01M11.5 7h.01M5 9.5h6" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="setting-info">
+          <div class="setting-title">Open popup shortcut</div>
+          <div class="setting-desc">Chrome manages keyboard shortcuts directly. Click to view or change it.</div>
+        </div>
+        <button class="shortcut-btn" id="shortcutBtn">
+          <span id="shortcutKeys">⌘⇧L</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+
+  <!-- Badge -->
+  <div class="section">
+    <div class="section-label">Toolbar Badge</div>
+    <div class="section-card">
+
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="1.5" y="1.5" width="13" height="13" rx="3"/>
+            <text x="8" y="11" text-anchor="middle" font-size="6" font-weight="700" fill="currentColor" stroke="none" font-family="sans-serif">3</text>
+          </svg>
+        </div>
+        <div class="setting-info">
+          <div class="setting-title">Active port count</div>
+          <div class="setting-desc">Shows the number of active ports directly on the toolbar icon — no need to open the popup.</div>
+        </div>
+      </div>
+
+      <!-- Server-down flash duration slider -->
+      <div class="slider-row" id="serverFlashRow">
+        <div class="slider-header">
+          <span class="slider-label">Server-offline alert duration</span>
+          <span class="slider-value" id="serverFlashLabel">2 min</span>
+        </div>
+        <input
+          type="range"
+          id="serverFlashSlider"
+          min="0" max="21" step="1" value="8"
+        >
+        <div class="slider-ticks">
+          <span>10 sec</span>
+          <span>5 min</span>
+          <span>12 min</span>
+          <span>20 min</span>
+        </div>
+        <div class="setting-desc" style="margin-top:8px;">
+          The badge flashes translucent red for this long when the control server (<code style="font-family:monospace">server.js</code>) goes offline.
+        </div>
+      </div>
+
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M8 1v6M8 15v-2M3 8h2M11 8h2" stroke-linecap="round"/>
+            <circle cx="8" cy="8" r="2.2"/>
+          </svg>
+        </div>
+        <div class="setting-info">
+          <div class="setting-title">New port detected</div>
+          <div class="setting-desc">When a new port comes online, the badge flashes translucent green for 7 seconds. Not adjustable.</div>
         </div>
       </div>
 
