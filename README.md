@@ -44,6 +44,12 @@
 | ↔️ **Swipe to remove** | Drag any port row left to reveal a delete button |
 | 🕒 **Smart caching** | Configurable scan interval (30 min → 24 hr) — popup opens instantly from cache |
 | **Acsent color picker** | Adds much more personalization to Your extension |
+| **Clean UI** | Check out the examples bellow! |
+
+<img width="384" height="300" alt="image" src="https://github.com/user-attachments/assets/50240f76-bddd-4a2e-a5f0-f2f73869b135" />
+<img width="369" height="551" alt="45eb1b15-b5cd-41cc-a969-f82ca6d3833a" src="https://github.com/user-attachments/assets/40114a88-84a3-4a04-b764-e33ae6e62512" />
+
+
 
 ---
 
