@@ -47,13 +47,20 @@
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
+    html, body {
+      margin: 0;
+      padding: 0;
       width: 360px;
+      min-height: 100%;
+      background: var(--chrome-white);
+    }
+
+    body {
       font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
       font-size: 13px;
-      background: var(--chrome-white);
       color: var(--chrome-text);
       transition: background 0.2s, color 0.2s;
+      overflow-x: hidden;
     }
 
     /* ── Toolbar ── */
@@ -193,11 +200,17 @@
     #status.error { color: var(--chrome-red); font-weight: 500; }
 
     /* ── Port list ── */
-    #port-list { display: flex; flex-direction: column; }
+    #port-list {
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+      max-width: 100%;
+    }
 
     /* ── Swipe-to-delete ── */
     .swipe-wrapper {
       overflow: hidden;
+      max-width: 100%;
       border-bottom: 1px solid var(--chrome-border);
     }
     .swipe-wrapper:last-child { border-bottom: none; }
