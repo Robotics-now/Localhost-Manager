@@ -286,6 +286,11 @@ Works on any Chromium-based browser with Manifest V3 support:
 
 ---
 
+### Releases version numbers
+
+The first number is the extension's version, the second number is the major update and finaly the third one are the minor updates.
+
+
 
 <div align="center">
 
