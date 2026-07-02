@@ -44,7 +44,7 @@
 | 🎨 **Themes** | Light, dark, or auto (follows system appearance) |
 | ⬡ **Live status dots** | Green = active · Gray = offline · Blue = hosted · Red = error |
 | ↔️ **Swipe to remove** | Drag any port row left to reveal a delete button |
-| 🕒 **Smart caching** | Configurable scan interval (30 min → 24 hr) — popup opens instantly from cache |
+| **Smart caching** | Configurable scan interval (30 min → 24 hr) — popup opens instantly from cache |
 | **Acsent color picker** | Adds much more personalization to Your extension |
 | **Clean UI** | Check out the examples bellow! |
 
