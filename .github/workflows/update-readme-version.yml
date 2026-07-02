@@ -1,0 +1,38 @@
+name: Update README Version
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Update Badge in README
+        run: |
+          RAW_TAG="${{ github.event.release.tag_name }}"
+          
+          # Strips out a leading 'V' or 'v' from the tag name
+          CLEAN_VERSION=$(echo "$RAW_TAG" | sed 's/^[Vv]//')
+          
+          echo "Original Tag: $RAW_TAG -> Badge Version: $CLEAN_VERSION"
+          
+          # Rebuild the badge markdown string dynamically
+          NEW_BADGE="[![Version](https://img.shields.io/badge/Version-$CLEAN_VERSION-4fc3f7?style=flat-square)](https://github.com/Robotics-now/Localhost-Manager/releases)"
+          
+          # Swap out everything between the comments with the new badge layout
+          sed -i "s|\(<!-- VERSION_START -->\).*\(<!-- VERSION_END -->\)|\1$NEW_BADGE\2|g" README.md
+
+      - name: Commit and Push Changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "docs: bump README badge to $RAW_TAG" || echo "No changes to commit"
+          git push
