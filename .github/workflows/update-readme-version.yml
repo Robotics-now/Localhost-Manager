@@ -15,24 +15,37 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Update Badge in README
+        shell: python
         run: |
-          RAW_TAG="${{ github.event.release.tag_name }}"
+          import os, re
+
+          # 1. Get the tag name from GitHub environment
+          raw_tag = "${{ github.event.release.tag_name }}"
           
-          # Strips out a leading 'V' or 'v' from the tag name
-          CLEAN_VERSION=$(echo "$RAW_TAG" | sed 's/^[Vv]//')
-          
-          echo "Original Tag: $RAW_TAG -> Badge Version: $CLEAN_VERSION"
-          
-          # Rebuild the badge markdown string dynamically
-          NEW_BADGE="[![Version](https://img.shields.io/badge/Version-$CLEAN_VERSION-4fc3f7?style=flat-square)](https://github.com/Robotics-now/Localhost-Manager/releases)"
-          
-          # Swap out everything between the comments with the new badge layout
-          sed -i "s|\(<!-- VERSION_START -->\).*\(<!-- VERSION_END -->\)|\1$NEW_BADGE\2|g" README.md
+          # 2. Strip a leading 'V' or 'v' if present
+          clean_version = raw_tag.lstrip('Vv')
+          print(f"Original Tag: {raw_tag} -> Clean Version: {clean_version}")
+
+          # 3. Build the exact markdown badge string
+          new_badge = f"[![Version](https://img.shields.io/badge/Version-{clean_version}-4fc3f7?style=flat-square)](https://github.com/Robotics-now/Localhost-Manager/releases)"
+
+          # 4. Read the current README
+          with open("README.md", "r", encoding="utf-8") as f:
+              content = f.read()
+
+          # 5. Use regex to swap everything between the anchor tags safely
+          pattern = r"(<!-- VERSION_START -->).*?(<!-- VERSION_END -->)"
+          replacement = f"\\1{new_badge}\\2"
+          updated_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+
+          # 6. Save it back
+          with open("README.md", "w", encoding="utf-8") as f:
+              f.write(updated_content)
 
       - name: Commit and Push Changes
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git commit -m "docs: bump README badge to $RAW_TAG" || echo "No changes to commit"
+          git commit -m "docs: bump README badge to ${{ github.event.release.tag_name }}" || echo "No changes to commit"
           git push
