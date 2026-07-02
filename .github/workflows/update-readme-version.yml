@@ -19,26 +19,26 @@ jobs:
         run: |
           import os, re
 
-          # 1. Get the tag name from GitHub environment
           raw_tag = "${{ github.event.release.tag_name }}"
-          
-          # 2. Strip a leading 'V' or 'v' if present
           clean_version = raw_tag.lstrip('Vv')
           print(f"Original Tag: {raw_tag} -> Clean Version: {clean_version}")
 
-          # 3. Build the exact markdown badge string
-          new_badge = f"[![Version](https://img.shields.io/badge/Version-{clean_version}-4fc3f7?style=flat-square)](https://github.com/Robotics-now/Localhost-Manager/releases)"
+          # Build the entire row of badges on a single line
+          version_badge = f"[![Version](https://img.shields.io/badge/Version-{clean_version}-4fc3f7?style=flat-square)](https://github.com/Robotics-now/Localhost-Manager/releases)"
+          manifest_badge = "[![Manifest](https://img.shields.io/badge/Manifest-V3-22c55e?style=flat-square)](https://developer.chrome.com/docs/extensions/develop/migrate/what-is-mv3)"
+          license_badge = "[![License](https://img.shields.io/badge/License-GPL3.0-f59e0b?style=flat-square)](https://github.com/Robotics-now/Localhost-Manager?tab=GPL-3.0-1-ov-file)"
+          node_badge = "[![Node](https://img.shields.io/badge/Requires-Node.js-3c873a?style=flat-square)](https://nodejs.org/en)"
+          
+          # Combine them with a space in between
+          all_badges = f"{version_badge} {manifest_badge} {license_badge} {node_badge}"
 
-          # 4. Read the current README
           with open("README.md", "r", encoding="utf-8") as f:
               content = f.read()
 
-          # 5. Use regex to swap everything between the anchor tags safely
+          # Replace everything between the tags on that single line safely
           pattern = r"(<!-- VERSION_START -->).*?(<!-- VERSION_END -->)"
-          replacement = f"\\1{new_badge}\\2"
-          updated_content = re.sub(pattern, replacement, content, flags=re.DOTALL)
+          updated_content = re.sub(pattern, f"\\1{all_badges}\\2", content)
 
-          # 6. Save it back
           with open("README.md", "w", encoding="utf-8") as f:
               f.write(updated_content)
 
@@ -47,5 +47,5 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add README.md
-          git commit -m "docs: bump README badge to ${{ github.event.release.tag_name }}" || echo "No changes to commit"
+          git commit -m "docs: bump README version badge to ${{ github.event.release.tag_name }}" || echo "No changes to commit"
           git push
