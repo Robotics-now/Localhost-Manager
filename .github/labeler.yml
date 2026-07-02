@@ -1,0 +1,8 @@
+# Configuration for actions/labeler
+
+"README update":
+  - changed-files:
+      # Ensures README.md is part of the change
+      - any-glob-to-any-file: 'README.md'
+      # Ensures ONLY README.md was changed (no other files allowed)
+      - all-globs-to-all-files: 'README.md'
