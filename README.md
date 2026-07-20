@@ -100,7 +100,7 @@ Leave this terminal open while using the extension. You should see:
 └─────────────────────────────────────────┘
 ```
 
-> **Requires Node.js** — no `npm install` needed, uses only built-in modules.
+> **Requires Node.js** or **Python** — no `npm install` needed, uses only built-in modules.
 
 </details>
 
@@ -140,7 +140,9 @@ Open **Settings** (gear icon in the popup) and toggle **Auto scan** on. The exte
 Localhost-Manager/
 ├── manifest.json         # Extension manifest (MV3)
 ├── background.js         # Service worker
-├── server.js             # Node.js control server (run separately)
+├── servers/
+│   ├── server.js         # Node.js control server (run separately)
+│   └── server.py         # Python version of the Node.js server 
 ├── templates/
 │   ├── popup.html        # Extension popup UI
 │   └── settings.html     # Settings page
