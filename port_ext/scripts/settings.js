@@ -89,6 +89,19 @@ serverFlashSlider.addEventListener('input', () => {
     });
 });
 
+// --- BADGE TOGGLE ---
+function setBadgeSubEnabled(enabled) {
+    document.getElementById('badgeSubSettings').classList.toggle('disabled', !enabled);
+}
+
+document.getElementById('badgeToggle').addEventListener('change', (e) => {
+    const enabled = e.target.checked;
+    chrome.storage.local.set({ badgeEnabled: enabled });
+    setBadgeSubEnabled(enabled);
+    // Tell background to immediately clear or restore the badge
+    chrome.runtime.sendMessage({ action: 'setBadgeEnabled', enabled });
+});
+
 // --- AUTO SCAN ---
 document.getElementById('autoScanToggle').addEventListener('change', (e) => {
     const enabled = e.target.checked;
@@ -217,7 +230,7 @@ document.getElementById('shortcutBtn').addEventListener('click', () => {
 document.getElementById('backBtn').addEventListener('click', () => window.close());
 
 // --- LOAD SAVED SETTINGS ---
-chrome.storage.local.get(['theme', 'viewMode', 'networkScan', 'networkRange', 'autoScan', 'autoScanIntervalIndex', 'accentColor', 'serverDownFlashIndex'], (result) => {
+chrome.storage.local.get(['theme', 'viewMode', 'networkScan', 'networkRange', 'autoScan', 'autoScanIntervalIndex', 'accentColor', 'serverDownFlashIndex', 'badgeEnabled'], (result) => {
     const theme = result.theme || 'auto';
     const radio = document.querySelector(`input[name="theme"][value="${theme}"]`);
     if (radio) radio.checked = true;
@@ -262,4 +275,9 @@ chrome.storage.local.get(['theme', 'viewMode', 'networkScan', 'networkRange', 'a
     const flashIndex = result.serverDownFlashIndex ?? 8;
     serverFlashSlider.value = flashIndex;
     updateServerFlashLabel(flashIndex);
+
+    // Restore badge toggle; default true (enabled)
+    const badgeOn = result.badgeEnabled !== false;
+    document.getElementById('badgeToggle').checked = badgeOn;
+    setBadgeSubEnabled(badgeOn);
 });
