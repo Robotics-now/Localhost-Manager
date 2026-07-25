@@ -313,6 +313,11 @@
     .about-label { font-size: 12px; color: var(--chrome-text-secondary); }
     .about-value { font-size: 12px; color: var(--chrome-text); font-weight: 500; }
 
+    #badgeSubSettings.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
     .spacer { height: 12px; }
     /* ── Scan interval slider ── */
     .slider-row {
@@ -613,6 +618,26 @@
           </svg>
         </div>
         <div class="setting-info">
+          <div class="setting-title">Show badge</div>
+          <div class="setting-desc">Show the active port count on the toolbar icon. Disable to keep the icon clean.</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="badgeToggle" checked>
+          <span class="toggle-track"></span>
+        </label>
+      </div>
+
+      <!-- Badge sub-settings — grayed out when badge is disabled -->
+      <div id="badgeSubSettings">
+
+      <div class="setting-row">
+        <div class="setting-icon">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="1.5" y="1.5" width="13" height="13" rx="3"/>
+            <text x="8" y="11" text-anchor="middle" font-size="6" font-weight="700" fill="currentColor" stroke="none" font-family="sans-serif">3</text>
+          </svg>
+        </div>
+        <div class="setting-info">
           <div class="setting-title">Active port count</div>
           <div class="setting-desc">Shows the number of active ports directly on the toolbar icon — no need to open the popup.</div>
         </div>
@@ -652,6 +677,8 @@
           <div class="setting-desc">When a new port comes online, the badge flashes translucent green for 7 seconds. Not adjustable.</div>
         </div>
       </div>
+
+      </div><!-- end badgeSubSettings -->
 
     </div>
   </div>

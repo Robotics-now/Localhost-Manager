@@ -12,11 +12,18 @@ const BADGE_RED_TRANSLUCENT = '#ea4335cc';
 const BADGE_GREEN = '#34a853';          // new port detected
 const BADGE_GREEN_TRANSLUCENT = '#34a853cc';
 
-let knownActivePorts = new Set();   // last known active ports, used to detect "new"
+let knownActivePorts = new Set();
 let serverDownFlashTimer = null;
 let newPortFlashTimer = null;
-let flashBlinkInterval = null;      // drives the translucent pulse while flashing
-let currentFlashMode = null;        // 'red' | 'green' | null
+let flashBlinkInterval = null;
+let currentFlashMode = null;
+let badgeEnabled = true; // default on; updated from storage
+
+// Load badge preference at startup
+chrome.storage.local.get(['badgeEnabled'], (result) => {
+  badgeEnabled = result.badgeEnabled !== false;
+  if (!badgeEnabled) chrome.action.setBadgeText({ text: '' });
+});
 
 chrome.runtime.onInstalled.addListener(() => {
   console.log("Localhost Manager installed.");
@@ -37,6 +44,7 @@ function initBadge() {
 // --- Badge rendering ---
 
 function updateBadgeCount(count) {
+  if (!badgeEnabled) { chrome.action.setBadgeText({ text: '' }); return; }
   chrome.action.setBadgeText({ text: count > 0 ? String(count) : '' });
   if (currentFlashMode === null) {
     chrome.action.setBadgeBackgroundColor({ color: BADGE_NEUTRAL });
@@ -44,9 +52,7 @@ function updateBadgeCount(count) {
 }
 
 function startFlash(mode, durationMs) {
-  // A new flash of the same or higher-priority mode resets the timer.
-  // Red (server down) takes priority over green (new port) since it's
-  // a problem state, not a celebratory one.
+  if (!badgeEnabled) return;
   if (currentFlashMode === 'red' && mode === 'green') return;
 
   stopFlash();
@@ -88,7 +94,8 @@ async function pollOnce() {
   // 1. Check active ports among knownPorts (lightweight — no title/favicon fetch here,
   //    that detail work stays in popup.js; background only needs up/down + count)
   const activeNow = new Set();
-  await Promise.all(knownPorts.map(async (port) => {
+  const validPorts = knownPorts.filter(p => Number.isInteger(p) && p > 0 && p <= 65535);
+  await Promise.all(validPorts.map(async (port) => {
     try {
       const controller = new AbortController();
       const t = setTimeout(() => controller.abort(), 800);
@@ -126,6 +133,18 @@ async function pollOnce() {
 // popup.js calls this after its own scan completes so the badge updates
 // immediately rather than waiting for the next background poll cycle.
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "setBadgeEnabled") {
+    badgeEnabled = request.enabled;
+    if (!badgeEnabled) {
+      stopFlash();
+      chrome.action.setBadgeText({ text: '' });
+    } else {
+      // Immediately restore by re-running a poll
+      pollOnce();
+    }
+    sendResponse({ ok: true });
+    return true;
+  }
   if (request.action === "getPorts") {
     sendResponse({ status: "Background worker is active" });
     return true;

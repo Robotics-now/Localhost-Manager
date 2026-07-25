@@ -157,7 +157,8 @@
       border-color: var(--accent-hover);
     }
 
-    input[type="number"] {
+    input[type="number"],
+    input[type="text"] {
       flex: 1;
       height: 32px;
       padding: 0 10px;
@@ -170,11 +171,13 @@
       background: var(--chrome-white);
       transition: border-color 0.15s;
     }
-    input[type="number"]:focus {
+    input[type="number"]:focus,
+    input[type="text"]:focus {
       border-color: var(--accent);
       box-shadow: 0 0 0 2px rgba(26,115,232,0.2);
     }
-    input[type="number"]::placeholder { color: var(--chrome-text-secondary); }
+    input[type="number"]::placeholder,
+    input[type="text"]::placeholder { color: var(--chrome-text-secondary); }
 
     /* ── Status bar ── */
     #status-bar {
@@ -445,6 +448,7 @@
         Rescan
       </button>
       <input type="file" id="htmlFile" accept=".html" style="display:none">
+      <input type="file" id="projectFolder" style="display:none" webkitdirectory multiple>
       <button class="chrome-btn" id="hostBtn">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
           <path d="M10 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5l-3-4z"/>
@@ -452,6 +456,15 @@
         </svg>
         Host HTML
       </button>
+      <button class="chrome-btn" id="hostProjectBtn">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M1 3.5A1.5 1.5 0 0 1 2.5 2h3.764a1 1 0 0 1 .707.293L8 3.5H13.5A1.5 1.5 0 0 1 15 5v7a1.5 1.5 0 0 1-1.5 1.5h-11A1.5 1.5 0 0 1 1 12z"/>
+        </svg>
+        Host Project
+      </button>
+    </div>
+    <div class="btn-group">
+      <input type="text" id="entryFile" placeholder="Entry file (default: index.html)" autocomplete="off" autocorrect="off" spellcheck="false">
     </div>
     <div class="btn-group">
       <input type="number" id="customPort" placeholder="Add port (e.g. 5501)" min="1" max="65535">

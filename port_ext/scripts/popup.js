@@ -688,6 +688,7 @@ document.getElementById('addPortBtn').addEventListener('click', () => {
 });
 
 document.getElementById('hostBtn').addEventListener('click', () => htmlFileInput.click());
+document.getElementById('hostProjectBtn').addEventListener('click', () => document.getElementById('projectFolder').click());
 
 htmlFileInput.addEventListener('change', function (e) {
     const file = e.target.files[0];
@@ -696,4 +697,133 @@ htmlFileInput.addEventListener('change', function (e) {
     reader.onload = (event) => hostFile(event.target.result);
     reader.readAsText(file);
     htmlFileInput.value = '';
+});
+
+// Multi-file project hosting
+// Reads every file in the selected folder, encodes binary files as base64,
+// and sends them all to /start-multi on the control server.
+document.getElementById('projectFolder').addEventListener('change', async function (e) {
+    const files = [...e.target.files];
+    if (!files.length) return;
+
+    const ready = await controlServerReady();
+    if (!ready) { setError('Server offline — run: node server.js'); return; }
+
+    const candidates = [9000, 9001, 9002, 9003, 9004, 9005];
+    const port = candidates.find(p => !activePortSet.has(p) && !hostedPortSet.has(p));
+    if (port === undefined) { setError('No free port in range 9000–9005'); return; }
+
+    setStatus('scanning', `Reading ${files.length} files…`);
+
+    const TEXT_TYPES = /\.(html?|css|js|mjs|json|svg|txt|xml|md|ts|jsx|tsx|map|yaml|yml|toml|ini)$/i;
+
+    // Step 1: read all files, keeping the raw webkitRelativePath
+    const fileData = [];
+    for (const file of files) {
+        const rawPath = file.webkitRelativePath || file.name;
+
+        const result = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onerror = () => reject(new Error(`Failed to read ${file.name}`));
+            if (TEXT_TYPES.test(file.name)) {
+                reader.onload = (ev) => resolve({ rawPath, content: ev.target.result, encoding: 'utf8' });
+                reader.readAsText(file, 'UTF-8');
+            } else {
+                reader.onload = (ev) => {
+                    const raw = ev.target.result || '';
+                    const commaIdx = raw.indexOf(',');
+                    resolve({ rawPath, content: commaIdx !== -1 ? raw.slice(commaIdx + 1) : '', encoding: 'base64' });
+                };
+                reader.readAsDataURL(file);
+            }
+        }).catch(err => { console.warn(`Skipping ${file.name}:`, err); return null; });
+
+        if (result) fileData.push(result);
+    }
+
+    if (fileData.length === 0) {
+        setError('No readable files found in folder');
+        document.getElementById('projectFolder').value = '';
+        return;
+    }
+
+    // DEBUG: log all raw paths to see exactly what Chrome gives us
+    console.log('[LM] Raw paths from webkitRelativePath:');
+    fileData.forEach(f => console.log(' ', JSON.stringify(f.rawPath)));
+
+    // Read the entry file name — default to index.html if blank
+    const entryFileName = (document.getElementById('entryFile').value.trim() || 'index.html').toLowerCase();
+
+    // Find the entry file to determine root
+    const indexFile = fileData.find(f =>
+        f.rawPath.toLowerCase().endsWith('/' + entryFileName) ||
+        f.rawPath.toLowerCase() === entryFileName
+    );
+
+    console.log('[LM] entry file:', entryFileName, '| found at:', indexFile ? indexFile.rawPath : 'NOT FOUND');
+
+    let rootPrefix = '';
+    if (indexFile) {
+        const lastSlash = indexFile.rawPath.lastIndexOf('/');
+        rootPrefix = lastSlash !== -1 ? indexFile.rawPath.slice(0, lastSlash + 1) : '';
+    } else {
+        const firstSlash = fileData[0].rawPath.indexOf('/');
+        rootPrefix = firstSlash !== -1 ? fileData[0].rawPath.slice(0, firstSlash + 1) : '';
+    }
+
+    console.log('[LM] rootPrefix to strip:', JSON.stringify(rootPrefix));
+
+    const strippedFiles = fileData
+        .map(f => ({
+            path: f.rawPath.startsWith(rootPrefix)
+                ? f.rawPath.slice(rootPrefix.length)
+                : f.rawPath,
+            content: f.content,
+            encoding: f.encoding
+        }))
+        .filter(f => f.path);
+
+    console.log('[LM] Stripped paths being sent to server:');
+    strippedFiles.forEach(f => console.log(' ', JSON.stringify(f.path)));
+
+    // Warn clearly if no entry file was found
+    if (!indexFile) {
+        setError(`No ${entryFileName} found — pick your project root folder`);
+        document.getElementById('projectFolder').value = '';
+        return;
+    }
+
+    if (strippedFiles.length === 0) {
+        setError('Could not determine project root');
+        document.getElementById('projectFolder').value = '';
+        return;
+    }
+
+    setStatus('scanning', `Starting server on port ${port} · ${strippedFiles.length} files…`);
+
+    let result;
+    try {
+        const res = await fetch(`${CONTROL_SERVER}/start-multi`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ port, files: strippedFiles, entryFile: entryFileName })
+        });
+        result = await res.json();
+    } catch {
+        setError('Server offline — run: node server.js');
+        document.getElementById('projectFolder').value = '';
+        return;
+    }
+
+    if (!result.ok) { setError(`Failed: ${result.error}`); return; }
+
+    hostedPortSet.add(port);
+    if (!knownPorts.includes(port)) knownPorts.push(port);
+    chrome.storage.local.set({ knownPorts, hostedPorts: [...hostedPortSet] });
+    const entryUrl = entryFileName === 'index.html'
+        ? `http://localhost:${port}`
+        : `http://localhost:${port}/${entryFileName}`;
+    chrome.tabs.create({ url: entryUrl });
+    await scanPorts();
+    document.getElementById('projectFolder').value = '';
 });

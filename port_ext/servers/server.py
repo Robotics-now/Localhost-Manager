@@ -30,6 +30,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 CONTROL_PORT = 8765
 
+BLUE_TEXT = "\033[96m"
+RESET = "\033[0m"
+
 # Registry of active hosted servers.
 # Maps port number (int) -> dict with keys: server, thread, tmpdir, sockets
 hosted_servers = {}
@@ -77,6 +80,135 @@ class _SocketTrackingServer(ThreadingHTTPServer):
                 sock.close()
             except OSError:
                 pass
+
+
+MIME_TYPES = {
+    '.html': 'text/html; charset=utf-8',
+    '.htm':  'text/html; charset=utf-8',
+    '.css':  'text/css; charset=utf-8',
+    '.js':   'application/javascript; charset=utf-8',
+    '.mjs':  'application/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.svg':  'image/svg+xml',
+    '.png':  'image/png',
+    '.jpg':  'image/jpeg',
+    '.jpeg': 'image/jpeg',
+    '.gif':  'image/gif',
+    '.webp': 'image/webp',
+    '.ico':  'image/x-icon',
+    '.woff': 'font/woff',
+    '.woff2':'font/woff2',
+    '.ttf':  'font/ttf',
+    '.mp4':  'video/mp4',
+    '.webm': 'video/webm',
+    '.mp3':  'audio/mpeg',
+    '.wav':  'audio/wav',
+    '.txt':  'text/plain; charset=utf-8',
+    '.xml':  'application/xml',
+    '.pdf':  'application/pdf',
+}
+
+def _get_mime(file_path):
+    ext = os.path.splitext(file_path)[1].lower()
+    return MIME_TYPES.get(ext, 'application/octet-stream')
+
+
+def _make_multi_handler(tmpdir, entry_file='index.html'):
+    """Returns a handler that serves a full file tree with correct MIME types."""
+
+    class MultiFileHandler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self._serve()
+
+        def do_HEAD(self):
+            self._serve(head_only=True)
+
+        def _serve(self, head_only=False):
+            import urllib.parse
+            url_path = self.path.split('?')[0]
+            try:
+                url_path = urllib.parse.unquote(url_path)
+            except Exception:
+                pass
+            # Strip leading slashes and prevent path traversal
+            url_path = url_path.lstrip('/').replace('../', '')
+            file_path = os.path.join(tmpdir, url_path)
+
+            # Directory → look for entry file
+            if os.path.isdir(file_path):
+                file_path = os.path.join(file_path, entry_file)
+
+            def send_file(fp):
+                try:
+                    with open(fp, 'rb') as f:
+                        data = f.read()
+                    mime = _get_mime(fp)
+                    self.send_response(200)
+                    self.send_header('Content-Type', mime)
+                    self.send_header('Content-Length', str(len(data)))
+                    self.end_headers()
+                    if not head_only:
+                        self.wfile.write(data)
+                    return True
+                except (FileNotFoundError, OSError):
+                    return False
+
+            if not send_file(file_path):
+                # Fall back to entry file (handles client-side routing)
+                root_index = os.path.join(tmpdir, entry_file)
+                if not send_file(root_index):
+                    self.send_response(404)
+                    self.send_header('Content-Type', 'text/plain')
+                    self.end_headers()
+                    if not head_only:
+                        self.wfile.write(f'404 Not Found: /{url_path}'.encode())
+
+        def log_message(self, fmt, *args):
+            pass
+
+    return MultiFileHandler
+
+
+def start_multi_server(port, files, entry_file='index.html'):
+    """Write a list of {path, content, encoding} dicts to a temp directory,
+    then serve the whole tree on the given port."""
+    with hosted_servers_lock:
+        if port in hosted_servers:
+            return {"ok": False, "error": f"Port {port} is already hosted"}
+
+    tmpdir = tempfile.mkdtemp(prefix='lm_pro_')
+    try:
+        for file in files:
+            # Sanitise path — no traversal, no absolute paths
+            safe_path = file['path'].replace('../', '').lstrip('/')
+            dest = os.path.join(tmpdir, safe_path)
+            os.makedirs(os.path.dirname(dest), exist_ok=True)
+            if file.get('encoding') == 'base64':
+                import base64 as _b64
+                with open(dest, 'wb') as f:
+                    f.write(_b64.b64decode(file['content']))
+            else:
+                with open(dest, 'w', encoding='utf-8') as f:
+                    f.write(file['content'])
+    except Exception as e:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+        return {"ok": False, "error": f"Failed to write files: {e}"}
+
+    handler_cls = _make_multi_handler(tmpdir, entry_file)
+    try:
+        server = _SocketTrackingServer(('127.0.0.1', port), handler_cls)
+    except OSError as e:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+        return {"ok": False, "error": f"Could not bind port {port}: {e}"}
+
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+
+    with hosted_servers_lock:
+        hosted_servers[port] = {"server": server, "thread": thread, "tmpdir": tmpdir}
+
+    print(f"[+] Hosting project ({len(files)} files) on http://localhost:{port}")
+    return {"ok": True, "port": port, "message": f"Serving on http://localhost:{port}"}
 
 
 def _make_hosted_handler(tmpdir):
@@ -237,6 +369,23 @@ class ControlHandler(BaseHTTPRequestHandler):
             self._send_json(200 if result["ok"] else 400, result)
             return
 
+        if path == '/start-multi':
+            body = self._read_json_body()
+            port = body.get('port')
+            files = body.get('files')
+            entry_file = body.get('entryFile', 'index.html') or 'index.html'
+
+            if not isinstance(port, int) or isinstance(port, bool) or not (1 <= port <= 65535):
+                self._send_json(400, {"ok": False, "error": "Invalid port number"})
+                return
+            if not isinstance(files, list) or len(files) == 0:
+                self._send_json(400, {"ok": False, "error": "No files provided"})
+                return
+
+            result = start_multi_server(port, files, entry_file)
+            self._send_json(200 if result["ok"] else 400, result)
+            return
+
         if path == '/stop':
             body = self._read_json_body()
             port = body.get('port')
@@ -275,12 +424,12 @@ def main():
     control_server = ControlServer(('127.0.0.1', CONTROL_PORT), ControlHandler)
 
     print()
-    print('┌───────────────────────────────────────┐')
-    print('│   Localhost Manager — Control Server   │')
-    print(f'│   Listening on http://127.0.0.1:{CONTROL_PORT} │')
-    print('│   Keep this terminal open while using  │')
-    print('│   the extension. Ctrl+C to quit.       │')
-    print('└───────────────────────────────────────┘')
+    print(f'{BLUE_TEXT}┌───────────────────────────────────────┐{RESET}')
+    print(f'{BLUE_TEXT}│   Localhost Manager — Control Server  │{RESET}')
+    print(f'{BLUE_TEXT}│   Listening on http://127.0.0.1:{CONTROL_PORT}  │{RESET}')
+    print(f'{BLUE_TEXT}│   Keep this terminal open while using │{RESET}')
+    print(f'{BLUE_TEXT}│   the extension. Ctrl+C to quit.      │{RESET}')
+    print(f'{BLUE_TEXT}└───────────────────────────────────────┘{RESET}')
     print()
 
     control_server.serve_forever()
