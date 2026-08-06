@@ -33,6 +33,13 @@
 
 ---
 
+## ⚡ Why Localhost Manager?
+Tired of port conflicts (EADDRINUSE), guessing which dev server is on port 3000 vs 8080, or setting up full dev environments just to preview a static HTML snippet?
+
+Localhost Manager gives you a clean control center directly in your browser toolbar to track, host, and inspect local services.
+
+---
+
 ## ✨ Features
 
 | Feature | Description |
